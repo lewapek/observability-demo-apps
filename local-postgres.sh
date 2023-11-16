@@ -4,9 +4,9 @@ if [ $# -ne 1 ]; then
 fi
 
 container_name=local-postgres
-user=dontletexpireuser
-pass=default
-db_name=dontletexpiredb
+user=workshop
+pass=workshop
+db_name=workshop
 
 case $1 in
   "r" | "restart" )
