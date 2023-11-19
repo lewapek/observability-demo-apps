@@ -27,7 +27,7 @@ object JaegerTracer:
         ZIO.attempt(
           SdkTracerProvider
             .builder()
-            .setResource(Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, "workshop-products-management")))
+            .setResource(Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, "workshop-products")))
             .addSpanProcessor(spanProcessor)
             .build()
         )

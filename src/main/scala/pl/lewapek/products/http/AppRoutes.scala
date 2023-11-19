@@ -2,11 +2,12 @@ package pl.lewapek.products.http
 
 import io.opentelemetry.api.trace.SpanKind
 import pl.lewapek.products.metrics.PrometheusMetrics
+import pl.lewapek.products.model.ProductInfo
 import pl.lewapek.products.service.ForwardingService
 import pl.lewapek.products.service.ForwardingService.ForwardRequestInput
 import zio.*
 import zio.http.*
-import zio.http.Method.POST
+import zio.http.Method.{GET, POST}
 import zio.json.*
 import zio.telemetry.opentelemetry.baggage.Baggage
 import zio.telemetry.opentelemetry.baggage.propagation.BaggagePropagator
@@ -18,6 +19,15 @@ object AppRoutes:
   def make(tracing: Tracing, baggage: Baggage) =
     import tracing.aspects.*
     Http.collectZIO[Request] {
+      case request @ GET -> !! / "app" / "product" / id =>
+        val inCarrier = incomingHeadersCarrier(request.headers)
+        (
+          for
+            _ <- ZIO.debug(s"input headers: ${request.headers}")
+            _    <- ZIO.logAnnotate(LogAnnotation("productId", id))(ZIO.logInfo("Getting product")) @@ span("log get product")
+            dummy = ProductInfo("dummy", "dummy", Some("sample desc"))
+          yield Response.json(dummy.toJson)
+        ) @@ extractSpan(TraceContextPropagator.default, inCarrier, "productById", SpanKind.SERVER)
       case request @ POST -> !! / "app" / "forward" =>
         val inCarrier  = incomingHeadersCarrier(request.headers)
         val outCarrier = OutgoingContextCarrier.default()
