@@ -1,0 +1,106 @@
+version: "3.9"
+services:
+  view:
+    container_name: "workshop-view"
+    image: lewap/workshop-view:0.0.2
+    environment:
+      HTTP_PORT: "8080"
+      PRODUCT_URI: "http://product:8080"
+      ORDER_URI: "http://order:8080"
+      TRACING_HOST: "http://jaeger:4317"
+      TRACING_TRACER_NAME: "view"
+      FORWARD_URI: "http://localhost:8080/common/forward"
+      VERSION: 3
+    ports:
+    - "9500:8080"
+    restart: always
+    depends_on:
+    - postgres
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 500M
+  product:
+    container_name: "workshop-product"
+    image: lewap/workshop-product:0.0.2
+    environment:
+      HTTP_PORT: "8080"
+      DB_USER: "workshop"
+      DB_PASSWORD: "workshop"
+      DB_NAME: "workshop_product"
+      DB_HOST: "postgres"
+      DB_PORT: 5432
+      TRACING_HOST: "http://jaeger:4317"
+      TRACING_TRACER_NAME: "product"
+      FORWARD_URI: "http://localhost:8080/common/forward"
+      VERSION: 1
+    ports:
+    - "9501:8080"
+    restart: always
+    depends_on:
+    - postgres
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 500M
+  order:
+    container_name: "workshop-order"
+    image: lewap/workshop-order:0.0.2
+    environment:
+      HTTP_PORT: "8080"
+      DB_USER: "workshop"
+      DB_PASSWORD: "workshop"
+      DB_NAME: "workshop_order"
+      DB_HOST: "postgres"
+      DB_PORT: 5432
+      TRACING_HOST: "http://jaeger:4317"
+      TRACING_TRACER_NAME: "order"
+      FORWARD_URI: "http://localhost:8080/common/forward"
+      VERSION: 1
+    ports:
+    - "9502:8080"
+    restart: always
+    depends_on:
+    - postgres
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 500M
+  postgres:
+    container_name: "workshop-postgres"
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_DB: "workshop"
+      POSTGRES_USER: "workshop"
+      POSTGRES_PASSWORD: "workshop"
+    command: postgres -c log_statement=all
+    restart: always
+    volumes:
+    - app-volume:/var/lib/postgresql/data
+    - ./init-pg:/docker-entrypoint-initdb.d
+    ports:
+    - "5432:5432"
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 500M
+  jaeger:
+    container_name: "workshop-jaeger"
+    image: jaegertracing/all-in-one:1.48
+    environment:
+      COLLECTOR_OTLP_ENABLED: true
+    restart: always
+    ports:
+    - "16686:16686"
+    - "4317:4317"
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 500M
+volumes:
+  app-volume: {}

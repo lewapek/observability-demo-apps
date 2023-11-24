@@ -1,16 +1,19 @@
 import sbt.*
 
+// this should remain scala2 ==> disabling scala3 rewrite rules here
+// scalafmt: { rewrite.scala3.convertToNewSyntax = false, rewrite.scala3.removeOptionalBraces = false }
 object Dependencies {
 
-  private val zioVersion        = "2.0.16"
-  private val zioLoggingVersion = "2.1.14"
-  private val zioJsonVersion    = "0.6.1"
-  private val zioConfigVersion  = "4.0.0-RC16"
-  private val zioMetricsVersion = "2.1.0"
-  private val calibanVersion    = "2.3.0"
-  private val sttpVersion       = "3.8.11"
-  private val ducktapeVersion   = "0.1.11"
-  private val tapirVersion      = "1.3.0"
+  private val zioVersion            = "2.0.16"
+  private val zioInteropCatsVersion = "23.1.0.0"
+  private val zioLoggingVersion     = "2.1.14"
+  private val zioJsonVersion        = "0.6.1"
+  private val zioConfigVersion      = "4.0.0-RC16"
+  private val zioMetricsVersion     = "2.1.0"
+  private val sttpVersion           = "3.8.11"
+  private val ducktapeVersion       = "0.1.11"
+  private val tapirVersion          = "1.3.0"
+  private val doobieVersion         = "1.0.0-RC5"
 
   private val zio = Seq(
     "dev.zio" %% "zio"         % zioVersion,
@@ -20,6 +23,10 @@ object Dependencies {
   private val zioTest = Seq(
     "dev.zio" %% "zio-test"     % zioVersion % Test,
     "dev.zio" %% "zio-test-sbt" % zioVersion % Test
+  )
+
+  private val zioInteropCats = Seq(
+    "dev.zio" %% "zio-interop-cats" % zioInteropCatsVersion
   )
 
   private val zioLogging = Seq(
@@ -43,13 +50,16 @@ object Dependencies {
     "dev.zio" %% "zio-metrics-connectors"            % zioMetricsVersion,
     "dev.zio" %% "zio-metrics-connectors-prometheus" % zioMetricsVersion
   )
+
   private val openTelemetry = Seq(
-    "io.opentelemetry" % "opentelemetry-exporter-otlp" % "1.29.0", // should match the ones in zio-metrics-connectors
+    "io.opentelemetry" % "opentelemetry-exporter-otlp" % "1.29.0",
     "io.opentelemetry" % "opentelemetry-sdk"           % "1.29.0"
   )
+
   private val zioOpenTelemetry = Seq(
     "dev.zio" %% "zio-opentelemetry" % "3.0.0-RC17"
   )
+
   private val zioCache = Seq(
     "dev.zio" %% "zio-cache" % "0.2.3"
   )
@@ -76,13 +86,19 @@ object Dependencies {
     "io.github.arainko" %% "ducktape" % ducktapeVersion
   )
 
-  private val calibanServer = Seq(
-    "com.github.ghostdogpr" %% "caliban"          % calibanVersion,
-    "com.github.ghostdogpr" %% "caliban-zio-http" % calibanVersion
+  private val doobie = Seq(
+    "org.tpolecat" %% "doobie-core"     % doobieVersion,
+    "org.tpolecat" %% "doobie-postgres" % doobieVersion,
+    "org.tpolecat" %% "doobie-hikari"   % doobieVersion
+  )
+
+  val flyway = Seq(
+    "org.flywaydb" % "flyway-core" % "9.11.0"
   )
 
   val all = Seq(
     zio,
+    zioInteropCats,
     zioTest,
     zioLogging,
     zioJson,
@@ -96,6 +112,7 @@ object Dependencies {
     zioSttp,
     tapir,
     ducktape,
-    calibanServer
+    doobie,
+    flyway
   ).flatten
 }
