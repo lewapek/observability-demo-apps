@@ -4,4 +4,3 @@ CREATE TABLE order_info (
   remarks                text,
   order_date             timestamptz
 );
-CREATE INDEX order_info__customer_id__idx ON order_info(customer_id);
