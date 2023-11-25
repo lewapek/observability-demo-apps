@@ -5,6 +5,7 @@ import zio.*
 import zio.config.*
 import zio.config.magnolia.DeriveConfig
 import zio.config.typesafe.TypesafeConfigProvider
+import zio.json.{JsonDecoder, JsonEncoder}
 import zio.metrics.connectors.MetricsConfig
 
 object CommonConfig:
@@ -49,6 +50,11 @@ final case class HttpConfig(port: Int)
 final case class ForwardingServiceConfig(uri: Uri)
 final case class TracingConfig(host: String, tracerName: String)
 final case class VariantConfig(version: Int)
+object VariantConfig:
+  given JsonEncoder[VariantConfig] = JsonEncoder[Int].contramap(_.version)
+  given JsonDecoder[VariantConfig] = JsonDecoder[Int].map(VariantConfig.apply)
+end VariantConfig
+
 final case class DbConfig(
   host: String,
   port: Int,

@@ -1,23 +1,19 @@
 package pl.lewapek.workshop.observability.http
 
-import pl.lewapek.workshop.observability.metrics.AppTracing.*
-import pl.lewapek.workshop.observability.metrics.{AppTracing, PrometheusMetrics}
+import pl.lewapek.workshop.observability.metrics.TracingService.*
+import pl.lewapek.workshop.observability.metrics.{PrometheusMetrics, TracingService}
 import pl.lewapek.workshop.observability.service.ForwardingService
 import pl.lewapek.workshop.observability.service.ForwardingService.ForwardRequestInput
 import zio.*
 import zio.http.*
 import zio.http.Method.POST
 import zio.json.*
-import zio.telemetry.opentelemetry.baggage.Baggage
 import zio.telemetry.opentelemetry.baggage.propagation.BaggagePropagator
-import zio.telemetry.opentelemetry.tracing.Tracing
 import zio.telemetry.opentelemetry.tracing.propagation.TraceContextPropagator
 
 object CommonRoutes:
-  def make(tracing: Tracing, baggage: Baggage) =
-    given Tracing = tracing
-    given Baggage = baggage
-
+  def make(tracingService: TracingService) =
+    import tracingService.*
     Http.collectZIO[Request] {
       case request @ POST -> !! / "common" / "forward" =>
         withTracingCarriers(request, "forward") { case Carriers(inputCarrier, outputCarrier) =>

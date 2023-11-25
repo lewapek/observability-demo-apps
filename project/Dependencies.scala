@@ -7,7 +7,7 @@ object Dependencies {
   private val zioVersion            = "2.0.16"
   private val zioInteropCatsVersion = "23.1.0.0"
   private val zioLoggingVersion     = "2.1.14"
-  private val zioJsonVersion        = "0.6.1"
+  private val zioJsonVersion        = "0.6.2"
   private val zioConfigVersion      = "4.0.0-RC16"
   private val zioMetricsVersion     = "2.1.0"
   private val sttpVersion           = "3.8.11"
@@ -46,7 +46,7 @@ object Dependencies {
     "dev.zio" %% "zio-config-typesafe" % zioConfigVersion
   )
 
-  private val zioMetricsConnectors = Seq(
+  private val zioMetrics = Seq(
     "dev.zio" %% "zio-metrics-connectors"            % zioMetricsVersion,
     "dev.zio" %% "zio-metrics-connectors-prometheus" % zioMetricsVersion
   )
@@ -103,7 +103,7 @@ object Dependencies {
     zioLogging,
     zioJson,
     zioConfig,
-    zioMetricsConnectors,
+    zioMetrics,
     openTelemetry,
     zioOpenTelemetry,
     zioCache,

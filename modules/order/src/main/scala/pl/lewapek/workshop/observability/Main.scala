@@ -1,11 +1,11 @@
 package pl.lewapek.workshop.observability
 
 import io.opentelemetry.api.trace.Tracer
-import pl.lewapek.workshop.observability.config.{CommonConfig, ProductsServiceClientConfig}
+import pl.lewapek.workshop.observability.config.{CommonConfig, ProductsServiceClientConfig, VariantConfig}
 import pl.lewapek.workshop.observability.db.PostgresDatabase
 import pl.lewapek.workshop.observability.http.{AppRoutes, HttpServer}
-import pl.lewapek.workshop.observability.metrics.{AppTracing, JaegerTracer}
-import pl.lewapek.workshop.observability.service.{ForwardingService, OrderService, ProductServiceClient}
+import pl.lewapek.workshop.observability.metrics.{JaegerTracer, TracingService}
+import pl.lewapek.workshop.observability.service.{ForwardingService, OrderService}
 import zio.*
 import zio.metrics.connectors.prometheus
 import zio.telemetry.opentelemetry.baggage.Baggage
@@ -20,9 +20,10 @@ object Main extends ZIOAppDefault:
 
   private val program =
     for
-      _  <- ZIO.logInfo("Starting Products management")
-      tb <- AppTracing.tracingBaggage
-      _  <- HttpServer.run(AppRoutes.make(tb.tracing, tb.baggage))
+      _              <- ZIO.logInfo("Starting Products management")
+      tracingService <- ZIO.service[TracingService]
+      variantConfig  <- ZIO.service[VariantConfig]
+      _              <- HttpServer.run(AppRoutes.make(tracingService, variantConfig))
     yield ()
 
   private val layer = ZLayer.make[Requirements](
@@ -35,6 +36,7 @@ object Main extends ZIOAppDefault:
     PostgresDatabase.transactorLive,
     Tracing.live,
     Baggage.live(),
+    TracingService.layer,
     ContextStorage.fiberRef,
     JaegerTracer.live
   )

@@ -6,6 +6,7 @@ import pl.lewapek.workshop.observability.AppError
 import pl.lewapek.workshop.observability.Bootstrap.SttpBackendType
 import pl.lewapek.workshop.observability.config.ProductsServiceClientConfig
 import pl.lewapek.workshop.observability.http.SttpUtils
+import pl.lewapek.workshop.observability.metrics.TracingService.TracingHeaders
 import pl.lewapek.workshop.observability.model.*
 import sttp.client3.{asStringAlways, basicRequest}
 import zio.*
@@ -20,27 +21,23 @@ class ProductServiceClient(backend: SttpBackendType, productsConfig: ProductsSer
   ):
   import tracing.aspects.*
 
-  def addProduct(headers: Map[String, String], input: ProductInfoInput): IO[AppError, ProductInfo] =
+  def addProduct(input: ProductInfoInput)(using TracingHeaders): IO[AppError, WithVariant[ProductInfo]] =
     send(
-      headers,
       _.post(productsConfig.uri.addPath("app", "product")).body(input.toJson)
     ) @@ span("post:/app/product")
 
-  def product(headers: Map[String, String], id: ProductId): IO[AppError, Option[ProductInfo]] =
+  def product(id: ProductId)(using TracingHeaders): IO[AppError, WithVariant[Option[ProductInfo]]] =
     send(
-      headers,
       _.get(productsConfig.uri.addPath("app", "product", id.show))
     ) @@ span("get:/app/product/id")
 
-  def products(headers: Map[String, String], ids: List[ProductId]): IO[AppError, List[ProductInfo]] =
+  def products(ids: List[ProductId])(using TracingHeaders): IO[AppError, WithVariant[List[ProductInfo]]] =
     send(
-      headers,
       _.get(productsConfig.uri.addPath("app", "product").addParam("ids", ids.map(_.show).intercalate(",")))
     ) @@ span("get:/app/product?ids")
 
-  def products(headers: Map[String, String]): IO[AppError, List[ProductInfo]] =
+  def products(using TracingHeaders): IO[AppError, WithVariant[List[ProductInfo]]] =
     send(
-      headers,
       _.get(productsConfig.uri.addPath("app", "product"))
     ) @@ span("get:/app/product")
 

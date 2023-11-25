@@ -2,7 +2,7 @@ package pl.lewapek.workshop.observability.http
 
 import pl.lewapek.workshop.observability.Bootstrap
 import pl.lewapek.workshop.observability.config.HttpConfig
-import pl.lewapek.workshop.observability.metrics.PrometheusMetrics
+import pl.lewapek.workshop.observability.metrics.{PrometheusMetrics, TracingService}
 import pl.lewapek.workshop.observability.service.Healthcheck
 import sttp.tapir.json.jsoniter.*
 import zio.*
@@ -18,17 +18,16 @@ object HttpServer:
 
   def run[R <: Bootstrap.CommonRequirements](appRoutes: Http[R, Any, Request, Response]) = (
     for
-      tracing <- ZIO.service[Tracing]
-      baggage <- ZIO.service[Baggage]
+      tracingService <- ZIO.service[TracingService]
       readiness = Healthcheck(
         "Async jobs running check",
         PrometheusMetrics.asyncJobsInProgress.value.map(jobs =>
           if jobs.value < 5 then Healthcheck.Status.Ok else Healthcheck.Status.Error
         )
       )
-      healthcheckRoutes <- HealthcheckRoutes.make(Healthcheck.empty, readiness, tracing)
+      healthcheckRoutes <- HealthcheckRoutes.make(Healthcheck.empty, readiness, tracingService)
       metricsRoutes     <- MetricsRoutes.make
-      commonRoutes = CommonRoutes.make(tracing, baggage)
+      commonRoutes = CommonRoutes.make(tracingService)
       routes       = healthcheckRoutes ++ commonRoutes ++ appRoutes ++ metricsRoutes
       port <- Server.install[Bootstrap.CommonRequirements & R](routes.withDefaultErrorResponse)
       _    <- ZIO.logInfo(s"Http server started on port $port")

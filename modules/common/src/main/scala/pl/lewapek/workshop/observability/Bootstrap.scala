@@ -2,7 +2,7 @@ package pl.lewapek.workshop.observability
 
 import io.opentelemetry.api.trace.StatusCode
 import pl.lewapek.workshop.observability.config.{HttpConfig, VariantConfig}
-import pl.lewapek.workshop.observability.metrics.JaegerTracer
+import pl.lewapek.workshop.observability.metrics.{JaegerTracer, TracingService}
 import pl.lewapek.workshop.observability.service.ForwardingService
 import sttp.capabilities
 import sttp.capabilities.zio.ZioStreams
@@ -20,7 +20,7 @@ import zio.{Cause, Task, ZIO, ZLayer}
 
 object Bootstrap:
   type CommonRequirements = MetricsConfig & VariantConfig & HttpConfig & PrometheusPublisher & Tracing & Baggage &
-    ContextStorage & ForwardingService
+    TracingService & ContextStorage & ForwardingService
   type SttpBackendType = SttpBackend[Task, ZioStreams & capabilities.WebSockets]
 
   val statusMapper: StatusMapper[Throwable, Any] = StatusMapper.failureThrowable(_ => StatusCode.UNSET)
