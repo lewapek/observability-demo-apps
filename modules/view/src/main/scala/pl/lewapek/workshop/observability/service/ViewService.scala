@@ -32,7 +32,7 @@ class ViewService(
       orders <- orderServiceClient.orders(headers)
       views <- ZIO
         .foreachPar(orders)(order =>
-          productsForOrder(headers)(order).map(products => OrderView(order.id, products, None, order.date))
+          productsForOrder(headers)(order).map(products => OrderView(order.id, products, order.remarks, order.date))
         )
         .withParallelism(4)
     yield views
