@@ -8,6 +8,7 @@ import zio.*
 import zio.http.*
 import zio.http.Method.POST
 import zio.json.*
+import zio.json.ast.Json
 import zio.telemetry.opentelemetry.baggage.propagation.BaggagePropagator
 import zio.telemetry.opentelemetry.tracing.propagation.TraceContextPropagator
 
@@ -15,6 +16,20 @@ object CommonRoutes:
   def make(tracingService: TracingService) =
     import tracingService.*
     Http.collectZIO[Request] {
+      case request @ POST -> !! / "common" / "print" =>
+        withTracing(request, "/common/print") {
+          for
+            bodyString <- request.body.asString
+            _          <- ZIO.logInfo(s"Got body: ${bodyString}")
+          yield Response.ok
+        }
+      case request @ POST -> !! / "common" / "print-json" =>
+        withTracing(request, "/common/print-json") {
+          for
+            bodyString <- request.body.jsonAs[Json]
+            _          <- ZIO.logInfo(s"Got json body: ${bodyString.toJson}")
+          yield Response.ok
+        }
       case request @ POST -> !! / "common" / "forward" =>
         withTracingCarriers(request, "forward") { case Carriers(inputCarrier, outputCarrier) =>
           for

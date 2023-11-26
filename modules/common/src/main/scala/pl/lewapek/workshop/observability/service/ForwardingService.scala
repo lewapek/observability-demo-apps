@@ -18,14 +18,17 @@ class ForwardingService(backend: SttpBackendType, config: ForwardingServiceConfi
 
   def forward(input: ForwardRequestInput): IO[AppError, ForwardingResponse] =
     for
-      _ <- input.beforeMillis.whenDefinedDiscard(millis => ZIO.sleep(millis.millis) @@ span("sleep before"))
-      response <- input.decrementTtl.fold(
-        ZIO.logInfo("Forwarding request reached the end") *> ZIO.succeed(ForwardingResponse(0))
-      )(decreasedTllRequest =>
-        ZIO.logInfo(s"Forwarding request is being sent with decreased ttl: $decreasedTllRequest") *>
-          send(input.headers, decreasedTllRequest.toJson)
-      ) @@ span("send")
-      _ <- input.afterMillis.whenDefinedDiscard(millis => ZIO.sleep(millis.millis) @@ span("sleep after"))
+      _ <- input.beforeMillisMax1Min.whenDefinedDiscard(millis => ZIO.sleep(millis.millis) @@ span("sleep before"))
+      response <- input
+        .ensureMaxTtl(config.maxTtl)
+        .decrementTtl
+        .fold(
+          ZIO.logInfo("Forwarding request reached the end") *> ZIO.succeed(ForwardingResponse(0))
+        )(decreasedTllRequest =>
+          ZIO.logInfo(s"Forwarding request is being sent with decreased ttl: $decreasedTllRequest") *>
+            send(input.headers, decreasedTllRequest.toJson)
+        ) @@ span("send")
+      _ <- input.afterMillisMax1Min.whenDefinedDiscard(millis => ZIO.sleep(millis.millis) @@ span("sleep after"))
     yield response
   end forward
 
@@ -51,12 +54,15 @@ object ForwardingService:
   def forward(input: ForwardRequestInput): ZIO[ForwardingService, AppError, ForwardingResponse] =
     ZIO.serviceWithZIO[ForwardingService](_.forward(input))
   final case class ForwardRequestInput(
-      ttl: Int,
-      maybeHeaders: Option[Map[String, String]], // option, so json decoder can properly treat the absence
-      beforeMillis: Option[Int],
-      afterMillis: Option[Int]
+    ttl: Int,
+    maybeHeaders: Option[Map[String, String]], // option, so json decoder can properly treat the absence
+    beforeMillis: Option[Int],
+    afterMillis: Option[Int]
   ) derives JsonEncoder,
-        JsonDecoder:
+      JsonDecoder:
+    def beforeMillisMax1Min: Option[Int]                                  = beforeMillis.map(_.min(1000))
+    def afterMillisMax1Min: Option[Int]                                   = afterMillis.map(_.min(1000))
+    def ensureMaxTtl(maxValue: Int): ForwardRequestInput               = copy(ttl = ttl.min(maxValue))
     def decrementTtl: Option[ForwardRequestInput]                      = if ttl <= 0 then None else Some(copy(ttl - 1))
     def withHeaders(headers: Map[String, String]): ForwardRequestInput = copy(maybeHeaders = Some(headers))
     def headers: Map[String, String]                                   = maybeHeaders.getOrElse(Map.empty)

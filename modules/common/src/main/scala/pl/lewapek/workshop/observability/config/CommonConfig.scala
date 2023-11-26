@@ -47,7 +47,7 @@ object CommonConfig:
 end CommonConfig
 
 final case class HttpConfig(port: Int)
-final case class ForwardingServiceConfig(uri: Uri)
+final case class ForwardingServiceConfig(uri: Uri, maxTtl: Int)
 final case class TracingConfig(host: String, tracerName: String)
 final case class VariantConfig(version: Int)
 object VariantConfig:
