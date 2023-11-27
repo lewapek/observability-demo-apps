@@ -57,7 +57,7 @@ Different versions add more fieds to json (`product`, `order`) or optimize the w
 Check the results returned and visit jaeger ui again to spot the difference!
 The initial (`VERSION` = 1) `workshop-view` should give you sth similar:
 
-![view order spans](docs/jaeger-screenshot-view-order.png "/app/order spans")
+![view order spans](docs/jaeger-example-view-order.png "/app/order spans")
 
 ### Other endpoints
 
@@ -68,7 +68,7 @@ curl -XPOST -s localhost:9500/common/forward -d '{"ttl": 7, "beforeMillis": 5, "
 It's configured to send requests to itself, introducing intentional delays before and after. Each request decrements `ttl` by 1. Max initial `ttl` is 10.  
 After running the `/common/forward` request you should expect sth similar to below screenshot:  
 
-![forward spans](docs/jaeger-screenshot-forward.png "/common/forward spans")
+![forward spans](docs/jaeger-example-forward.png "/common/forward spans")
 
 ### Stop
 To remove everything (even postgres volume):
