@@ -15,7 +15,9 @@ class TracingService(val tracing: Tracing, val baggage: Baggage, variantConfig: 
   import TracingService.*
   def withTracing[R, E](request: Request, spanName: String)(zio: ZIO[R, E, Response]): ZIO[R, E, Response] =
     val inputCarrier = incomingHeadersCarrier(request.headers)
-    (tracing.setAttribute("app-variant", variantConfig.version.toString) *> zio) @@
+    (tracing.setAttribute("app-variant", variantConfig.version.toString) *>
+      tracing.setAttribute("namespace", variantConfig.namespace) *>
+      zio) @@
       tracing.aspects.extractSpan(TraceContextPropagator.default, inputCarrier, spanName, SpanKind.SERVER) @@
       PrometheusMetrics.requestHandlerTimer.tagged("endpoint", spanName).trackDuration
   end withTracing
@@ -30,6 +32,7 @@ class TracingService(val tracing: Tracing, val baggage: Baggage, variantConfig: 
     (
       tracing.inject(TraceContextPropagator.default, carriers.output) *>
         tracing.setAttribute("app-variant", variantConfig.version.toString) *>
+        tracing.setAttribute("namespace", variantConfig.namespace) *>
         zio(carriers) <*
         ZIO.logInfo(s"Headers: ${carriers.outputHeaders}")
     ) @@ tracing.aspects.extractSpan(TraceContextPropagator.default, carriers.input, spanName, SpanKind.SERVER) @@

@@ -49,11 +49,7 @@ end CommonConfig
 final case class HttpConfig(port: Int)
 final case class ForwardingServiceConfig(uri: Uri, maxTtl: Int)
 final case class TracingConfig(host: String, tracerName: String)
-final case class VariantConfig(version: Int)
-object VariantConfig:
-  given JsonEncoder[VariantConfig] = JsonEncoder[Int].contramap(_.version)
-  given JsonDecoder[VariantConfig] = JsonDecoder[Int].map(VariantConfig.apply)
-end VariantConfig
+final case class VariantConfig(version: Int, namespace: String) derives JsonEncoder, JsonDecoder
 
 final case class DbConfig(
   host: String,
