@@ -1,4 +1,3 @@
-import sbt.Keys.mainClass
 import sbtassembly.AssemblyPlugin.autoImport.assembly
 
 inThisBuild(

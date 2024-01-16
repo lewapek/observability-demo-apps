@@ -14,7 +14,7 @@ import zio.{IO, ZIO}
 extension (body: Body)
   def jsonAs[A: JsonDecoder]: IO[AppError, A] =
     for
-      string <- body.asString.mapError(throwable => AppError.internal("Problem getting body as string"))
+      string <- body.asString.orElseFail(AppError.internal("Problem getting body as string"))
       a <- ZIO
         .fromEither(string.fromJson[A])
         .mapError(string => AppError.internal(s"Couldn't convert json string to class"))
@@ -22,7 +22,7 @@ extension (body: Body)
 end extension
 
 extension [T](t: T)
-  def jsonVariantResponse(using config: VariantConfig, jsonEncoder: JsonEncoder[WithVariant[T]]) =
+  def jsonVariantResponse(using config: VariantConfig, jsonEncoder: JsonEncoder[WithVariant[T]]): Response =
     Response.json(WithVariant(config, t).toJson)
 
 type JsonRequestT = RequestT[Empty, Either[String, Json], Any]

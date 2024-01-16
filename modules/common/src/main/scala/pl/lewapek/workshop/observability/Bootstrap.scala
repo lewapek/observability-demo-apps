@@ -55,7 +55,6 @@ object Bootstrap:
       case LogLevel.Warn  => ZIO.logWarningCause(message, Cause.fail(t))
       case LogLevel.Error => ZIO.logErrorCause(message, Cause.fail(t))
     end apply
-
   end ZIOSttpLogger
 
 end Bootstrap
