@@ -7,6 +7,7 @@ import pl.lewapek.workshop.observability.metrics.{JaegerTracer, TracingService}
 import pl.lewapek.workshop.observability.service.*
 import zio.*
 import zio.metrics.connectors.prometheus
+import zio.metrics.jvm.DefaultJvmMetrics
 import zio.telemetry.opentelemetry.baggage.Baggage
 import zio.telemetry.opentelemetry.context.ContextStorage
 import zio.telemetry.opentelemetry.tracing.Tracing
@@ -29,6 +30,7 @@ object Main extends ZIOAppDefault:
     CommonConfig.layer,
     prometheus.publisherLayer,
     prometheus.prometheusLayer,
+    DefaultJvmMetrics.live.unit,
     Bootstrap.sttpBackendLayer,
     ForwardingService.layer,
     ViewService.layer,

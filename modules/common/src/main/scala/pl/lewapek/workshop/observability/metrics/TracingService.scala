@@ -35,9 +35,14 @@ class TracingService(val tracing: Tracing, val baggage: Baggage, variantConfig: 
         tracing.setAttribute("namespace", variantConfig.namespace) *>
         zio(carriers) <*
         ZIO.logInfo(s"Headers: ${carriers.outputHeaders}")
-    ) @@ tracing.aspects.extractSpan(TraceContextPropagator.default, carriers.input, spanName, SpanKind.SERVER) @@
-      PrometheusMetrics.requestHandlerTimer.tagged("endpoint", spanName).trackDuration
-
+    ) @@ tracing.aspects.extractSpan(
+      TraceContextPropagator.default,
+      carriers.input,
+      spanName,
+      SpanKind.SERVER
+    ) @@ PrometheusMetrics.requestHandlerTimer
+      .tagged("endpoint", spanName)
+      .trackDuration
   end withTracingCarriers
 end TracingService
 

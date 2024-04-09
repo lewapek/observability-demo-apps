@@ -1,21 +1,40 @@
 package pl.lewapek.workshop.observability.metrics
 
 import zio.Chunk
-import zio.metrics.Metric
+import zio.metrics.{Metric, MetricLabel}
 
 import java.time.temporal.ChronoUnit
+import zio.*
 
 object PrometheusMetrics:
-  val countLiveness  = Metric.counter("liveness_counter")
-  val countReadiness = Metric.counter("readiness_counter")
-  val requestHandlerTimer =
-    Metric.timer(
-      name = "workshop_request_timer",
-      chronoUnit = ChronoUnit.MILLIS,
-      boundaries = createBoundaries
-    )
+  private val commonLabels = Set(
+    MetricLabel("color", "blue"),
+    MetricLabel("country", "PL")
+  )
 
-  val asyncJobsInProgress = Metric.gauge("jobs_running")
+  val countLiveness  = Metric.counter("liveness_counter").tagged(commonLabels)
+  val countReadiness = Metric.counter("readiness_counter").tagged(commonLabels)
+  val requestHandlerTimer =
+    Metric
+      .timer(
+        name = "workshop_request_timer",
+        chronoUnit = ChronoUnit.MILLIS,
+        boundaries = createBoundaries
+      )
+      .tagged(commonLabels)
+
+  val asyncJobsInProgress = Metric.gauge("jobs_running").tagged(commonLabels).tagged("useless", "value")
+  val asyncJobsFinished = Metric.counter("jobs_finished").tagged(commonLabels)
+
+  val sampleSummary = Metric
+    .summary(
+      "sample_summary",
+      maxAge = 2.hours,
+      maxSize = 100,
+      error = 0.03d,
+      quantiles = Chunk(0.1, 0.5, 0.9)
+    )
+    .tagged(commonLabels)
 
   private def createBoundaries =
     Chunk

@@ -1,5 +1,11 @@
 # Observability demo apps
 
+## If you come here from Scala world
+
+Then below you may be interested in the following:
+- the entire codebase is written in `Scala 3` and `ZIO 2`
+
+
 Application used to demonstrate distributed tracing with OpenTelemetry with some metrics with prometheus.  
 For simplicity each application specific code is placed inside module with common code in `common` module.  
 Also for simplicity each app uses the same postgres db (however different tables inside, normally that should be separate db).

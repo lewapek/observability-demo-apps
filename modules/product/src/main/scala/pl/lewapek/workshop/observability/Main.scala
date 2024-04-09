@@ -1,18 +1,22 @@
 package pl.lewapek.workshop.observability
 
+import doobie.util.transactor.Transactor
 import io.opentelemetry.api.trace.Tracer
 import pl.lewapek.workshop.observability.config.{CommonConfig, VariantConfig}
 import pl.lewapek.workshop.observability.db.PostgresDatabase
 import pl.lewapek.workshop.observability.http.{AppRoutes, HttpServer}
 import pl.lewapek.workshop.observability.metrics.{JaegerTracer, TracingService}
-import pl.lewapek.workshop.observability.service.{ForwardingService, ProductService}
+import pl.lewapek.workshop.observability.service.{ForwardingService, Healthcheck, ProductService}
 import zio.*
 import zio.metrics.connectors.prometheus
+import zio.metrics.jvm.DefaultJvmMetrics
 import zio.telemetry.opentelemetry.baggage.Baggage
 import zio.telemetry.opentelemetry.context.ContextStorage
 import zio.telemetry.opentelemetry.tracing.Tracing
 
 object Main extends ZIOAppDefault:
+  type Requirements = Bootstrap.CommonRequirements & ProductService & Transactor[Task]
+
   override val bootstrap: ZLayer[ZIOAppArgs, Any, Any] =
     Bootstrap.logger >>> Runtime.setConfigProvider(CommonConfig.provider)
 
@@ -21,13 +25,14 @@ object Main extends ZIOAppDefault:
       _              <- ZIO.logInfo("Starting Products management")
       tracingService <- ZIO.service[TracingService]
       variantConfig  <- ZIO.service[VariantConfig]
-      _              <- HttpServer.run(AppRoutes.make(tracingService, variantConfig))
+      _              <- HttpServer.run(AppRoutes.make(tracingService, variantConfig), Healthcheck.postgres)
     yield ()
 
-  private val layer = ZLayer.make[Bootstrap.CommonRequirements & ProductService](
+  private val layer = ZLayer.make[Requirements](
     CommonConfig.layer,
     prometheus.publisherLayer,
     prometheus.prometheusLayer,
+    DefaultJvmMetrics.live.unit,
     Bootstrap.sttpBackendLayer,
     ForwardingService.layer,
     ProductService.layer,

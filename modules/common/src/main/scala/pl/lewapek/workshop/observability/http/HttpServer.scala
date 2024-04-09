@@ -16,7 +16,10 @@ object HttpServer:
     yield Server.Config.default.port(httpPort)
   ) >>> Server.live
 
-  def run[R <: Bootstrap.CommonRequirements](appRoutes: Http[R, Any, Request, Response]) = (
+  def run[R <: Bootstrap.CommonRequirements](
+    appRoutes: Http[R, Any, Request, Response],
+    livenessProbe: Healthcheck[R] = Healthcheck.empty
+  ) = (
     for
       tracingService <- ZIO.service[TracingService]
       readiness = Healthcheck(
@@ -25,7 +28,7 @@ object HttpServer:
           if jobs.value < 5 then Healthcheck.Status.Ok else Healthcheck.Status.Error
         )
       )
-      healthcheckRoutes <- HealthcheckRoutes.make(Healthcheck.empty, readiness, tracingService)
+      healthcheckRoutes <- HealthcheckRoutes.make(livenessProbe, readiness, tracingService)
       metricsRoutes     <- MetricsRoutes.make
       commonRoutes = CommonRoutes.make(tracingService)
       routes       = healthcheckRoutes ++ commonRoutes ++ appRoutes ++ metricsRoutes

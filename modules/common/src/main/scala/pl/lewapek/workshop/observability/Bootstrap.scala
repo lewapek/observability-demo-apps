@@ -2,7 +2,7 @@ package pl.lewapek.workshop.observability
 
 import io.opentelemetry.api.trace.StatusCode
 import pl.lewapek.workshop.observability.config.{HttpConfig, VariantConfig}
-import pl.lewapek.workshop.observability.metrics.{JaegerTracer, TracingService}
+import pl.lewapek.workshop.observability.metrics.TracingService
 import pl.lewapek.workshop.observability.service.ForwardingService
 import sttp.capabilities
 import sttp.capabilities.zio.ZioStreams
