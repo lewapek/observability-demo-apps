@@ -35,9 +35,9 @@ object CommonRoutes:
         println("got request")
         withTracingCarriers(request, "forward") { case Carriers(inputCarrier, outputCarrier) =>
           for
-            _ <- ZIO.debug("inside for")
+            _               <- ZIO.debug("inside for")
             forwardingInput <- request.body.jsonAs[ForwardRequestInput]
-            _ <- ZIO.debug(s"got input $forwardingInput")
+            _               <- ZIO.debug(s"got input $forwardingInput")
             _ <- ZIO.when(forwardingInput.ttl == 2)(
               baggage.set("baggage-key", "baggage-value") *>
                 tracing.setAttribute("ttl<=2", "yes")
@@ -64,9 +64,10 @@ object CommonRoutes:
         withTracing(request, "/common/async/job") {
           for
             id        <- Random.nextUUID
-            sleepTime <- Random.nextIntBetween(30, 120).map(_.seconds)
-            durationType = if sleepTime.toSeconds <= 60 then JobDuration.Short else JobDuration.Long
-            durationLabel  = MetricLabel("job_duration", durationType.toString.toLowerCase())
+            sleepTimeSec <- Random.nextIntBetween(30, 120)
+            durationType  = if sleepTimeSec <= 60 then JobDuration.Short else JobDuration.Long
+            durationLabel = MetricLabel("duration", durationType.toString.toLowerCase())
+            statusLabel <- JobStatus.random.map(status => MetricLabel("status", status.toString))
             _ <- ZIO
               .logAnnotate(LogAnnotation("jobId", id.toString))(
                 ZIO.scoped(
@@ -74,17 +75,13 @@ object CommonRoutes:
                     for
                       _ <- ZIO.logInfo("Starting job")
                       _ <- PrometheusMetrics.asyncJobsInProgress.tagged(durationLabel).increment
-                      _ <- ZIO.sleep(sleepTime)
+                      _ <- ZIO.sleep(sleepTimeSec.seconds)
                     yield ()
                   )(_ =>
                     ZIO.logInfo("Finished job") *>
                       PrometheusMetrics.asyncJobsInProgress.tagged(durationLabel).decrement *>
-                      JobStatus.random
-                        .flatMap { status =>
-                          PrometheusMetrics.asyncJobsFinished
-                            .tagged(durationLabel, MetricLabel("job_status", status.toString))
-                            .increment
-                        }
+                      PrometheusMetrics.asyncJobsFinished.tagged(durationLabel, statusLabel).increment *>
+                      PrometheusMetrics.asyncJobsDurationSec.tagged(statusLabel).update(sleepTimeSec.doubleValue)
                   )
                 )
               )
@@ -92,8 +89,10 @@ object CommonRoutes:
           yield Response.json(id.toJson)
         }
       case request @ POST -> !! / "common" / "sleep" / int(millis) =>
-        withTracing(request, "/common/sleep/<sec>") {
-          ZIO.succeed(Response.ok).delay(millis.millis)
+        withTracing(request, "/common/sleep/<millis>") {
+          (ZIO.succeed(millis.doubleValue) @@ PrometheusMetrics.sampleSummary) *> ZIO
+            .succeed(Response.ok)
+            .delay(millis.millis)
         }
     }
   end make

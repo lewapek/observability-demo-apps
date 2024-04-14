@@ -20,14 +20,17 @@ sealed trait Healthcheck[-R]:
 end Healthcheck
 
 object Healthcheck:
-  val empty: Healthcheck[Tracing] = new Healthcheck[Tracing]:
-    def run: ZIO[Tracing, Nothing, Chunk[NamedStatus]] = ZIO.serviceWithZIO[Tracing] { tracing =>
-      (ZIO.succeed(Chunk.empty) @@ tracing.aspects.span("inner")).delay(zio.Duration.fromMillis(33)) @@ tracing.aspects
-        .span("middle")
-    }
+  val empty: Healthcheck[Any] = new Healthcheck[Any]:
+    def run: UIO[Chunk[NamedStatus]] = ZIO.succeed(Chunk.empty)
 
   def apply[R](name: String, check: ZIO[R, Nothing, Status]): Healthcheck[R] = new Healthcheck[R]:
     def run: ZIO[R, Nothing, Chunk[NamedStatus]] = check.map(result => Chunk.single(NamedStatus(name, result)))
+
+  def manualToggle: Healthcheck[ManualHealthStateService] =
+    Healthcheck(
+      "health-toggle",
+      ManualHealthStateService.isHealthy.map(isHealthy => if isHealthy then Status.Ok else Status.Error)
+    )
 
   val postgres: Healthcheck[Transactor[Task]] =
     Healthcheck(

@@ -5,8 +5,13 @@ import io.opentelemetry.api.trace.Tracer
 import pl.lewapek.workshop.observability.config.{CommonConfig, VariantConfig}
 import pl.lewapek.workshop.observability.db.PostgresDatabase
 import pl.lewapek.workshop.observability.http.{AppRoutes, HttpServer}
-import pl.lewapek.workshop.observability.metrics.{JaegerTracer, TracingService}
-import pl.lewapek.workshop.observability.service.{ForwardingService, Healthcheck, ProductService}
+import pl.lewapek.workshop.observability.metrics.{OtelTracer, TracingService}
+import pl.lewapek.workshop.observability.service.{
+  ForwardingService,
+  Healthcheck,
+  ManualHealthStateService,
+  ProductService
+}
 import zio.*
 import zio.metrics.connectors.prometheus
 import zio.metrics.jvm.DefaultJvmMetrics
@@ -25,7 +30,10 @@ object Main extends ZIOAppDefault:
       _              <- ZIO.logInfo("Starting Products management")
       tracingService <- ZIO.service[TracingService]
       variantConfig  <- ZIO.service[VariantConfig]
-      _              <- HttpServer.run(AppRoutes.make(tracingService, variantConfig), Healthcheck.postgres)
+      _ <- HttpServer.run(
+        AppRoutes.make(tracingService, variantConfig),
+        Healthcheck.manualToggle ++ Healthcheck.postgres
+      )
     yield ()
 
   private val layer = ZLayer.make[Requirements](
@@ -37,11 +45,12 @@ object Main extends ZIOAppDefault:
     ForwardingService.layer,
     ProductService.layer,
     PostgresDatabase.transactorLive,
+    ManualHealthStateService.layer,
     Tracing.live,
     Baggage.live(),
     TracingService.layer,
     ContextStorage.fiberRef,
-    JaegerTracer.live
+    OtelTracer.live
   )
 
   override val run: ZIO[Any, Throwable, Any] =

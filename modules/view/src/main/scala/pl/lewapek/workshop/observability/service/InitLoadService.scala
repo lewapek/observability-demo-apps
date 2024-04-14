@@ -12,7 +12,6 @@ import java.time.Instant
 
 class InitLoadService(
   variantConfig: VariantConfig,
-  sttpBackend: SttpBackendType,
   productServiceClient: ProductServiceClient,
   orderServiceClient: OrderServiceClient,
   tracing: Tracing
@@ -58,7 +57,7 @@ object InitLoadService:
   def initLoad(using TracingHeaders): ZIO[InitLoadService, AppError, Unit] =
     ZIO.serviceWithZIO[InitLoadService](_.initLoad)
 
-  val layer                       = ZLayer.fromFunction(InitLoadService(_, _, _, _, _))
+  val layer                       = ZLayer.fromFunction(InitLoadService(_, _, _, _))
   private val oneYearMillis: Long = 366.days.toMillis
 
   private val nameFunFactsTuples = Vector(

@@ -25,7 +25,7 @@ object HttpServer:
       readiness = Healthcheck(
         "Async jobs running check",
         PrometheusMetrics.asyncJobsInProgress.value.map(jobs =>
-          if jobs.value < 5 then Healthcheck.Status.Ok else Healthcheck.Status.Error
+          if jobs.value < 10 then Healthcheck.Status.Ok else Healthcheck.Status.Error
         )
       )
       healthcheckRoutes <- HealthcheckRoutes.make(livenessProbe, readiness, tracingService)

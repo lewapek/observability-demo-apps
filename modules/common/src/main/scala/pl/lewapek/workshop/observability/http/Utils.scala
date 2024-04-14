@@ -28,18 +28,28 @@ extension [T](t: T)
 type JsonRequestT = RequestT[Empty, Either[String, Json], Any]
 type JsonRequest  = Request[Either[String, Json], Any]
 trait SttpUtils(backend: SttpBackendType, request: JsonRequestT):
-  def send[A: JsonDecoder](transform: JsonRequestT => JsonRequest)(using headers: TracingHeaders): IO[AppError, A] =
+  def sendTraceJson[A: JsonDecoder](transform: JsonRequestT => JsonRequest)(using headers: TracingHeaders): IO[AppError, A] =
     backend
       .send(transform(request.headers(headers.value)))
       .mapBoth(
-        AppError.internal("Error sending products request", _),
+        AppError.internal("Error sending request", _),
         _.body.left
-          .map(msg => AppError.internal(s"Couldn't read products response: $msg"))
+          .map(msg => AppError.internal(s"Couldn't read response: $msg"))
           .flatMap(
             _.as[A].left
               .map(msg => AppError.internal(s"Couldn't convert json to response model: $msg"))
           )
       )
       .absolve
-  end send
+  end sendTraceJson
+
+  def sendUnit(transform: JsonRequestT => JsonRequest): IO[AppError, Unit] =
+    backend.send(transform(request))
+      .mapBoth(
+        AppError.internal("Error sending request", _),
+        _.body.left
+          .map(msg => AppError.internal(s"Couldn't read response: $msg"))
+      )
+      .absolve
+      .unit
 end SttpUtils
