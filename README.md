@@ -1,6 +1,6 @@
 # Observability demo apps
 
-Application used to demonstrate distributed tracing with OpenTelemetry with some metrics with prometheus.  
+Application used to demonstrate distributed tracing with OpenTelemetry with some metrics scraped by Prometheus server during various training sessions.  
 For simplicity each application specific code is placed inside module with common code in `common` module.  
 Also for simplicity each app uses the same postgres db (however different tables inside, normally that should be separate db).
 
@@ -68,7 +68,8 @@ You can set `VERSION` to `"1"`, `"2"` or `"3"` and observe different behavior.
 ## Running
 
 The most straightforward way to run locally is through docker-compose. You don't need to bother with build tool (sbt in this case).  
-Go to the run-local directory first
+Go to the run-local directory first - there's everything you need to run this.
+
 ```
 cd run-local
 ```
