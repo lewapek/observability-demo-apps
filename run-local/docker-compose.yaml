@@ -1,8 +1,8 @@
-version: "3.9"
 services:
   view:
     container_name: "workshop-view"
-    image: lewap/workshop-view:0.3.0
+    networks: [workshop-network]
+    image: lewap/workshop-view:0.4.0
     environment:
       HTTP_PORT: "8080"
       PRODUCT_URI: "http://product:8080"
@@ -21,9 +21,11 @@ services:
         limits:
           cpus: '1'
           memory: 500M
+
   product:
     container_name: "workshop-product"
-    image: lewap/workshop-product:0.3.0
+    networks: [workshop-network]
+    image: lewap/workshop-product:0.4.0
     environment:
       HTTP_PORT: "8080"
       DB_USER: "workshop"
@@ -45,9 +47,11 @@ services:
         limits:
           cpus: '1'
           memory: 500M
+
   order:
     container_name: "workshop-order"
-    image: lewap/workshop-order:0.3.0
+    networks: [workshop-network]
+    image: lewap/workshop-order:0.4.0
     environment:
       HTTP_PORT: "8080"
       DB_USER: "workshop"
@@ -69,8 +73,10 @@ services:
         limits:
           cpus: '1'
           memory: 500M
+
   postgres:
     container_name: "workshop-postgres"
+    networks: [workshop-network]
     image: postgres:14-alpine
     environment:
       POSTGRES_DB: "workshop"
@@ -79,7 +85,7 @@ services:
     command: postgres -c log_statement=all
     restart: always
     volumes:
-    - app-volume:/var/lib/postgresql/data
+    - postgres-data:/var/lib/postgresql/data
     - ./init-pg:/docker-entrypoint-initdb.d
     ports:
     - "5432:5432"
@@ -88,8 +94,10 @@ services:
         limits:
           cpus: '2'
           memory: 500M
+
   jaeger:
     container_name: "workshop-jaeger"
+    networks: [workshop-network]
     image: jaegertracing/all-in-one:1.48
     environment:
       COLLECTOR_OTLP_ENABLED: true
@@ -102,5 +110,34 @@ services:
         limits:
           cpus: '1'
           memory: 500M
+
+  prometheus:
+    image: prom/prometheus:v2.51.1
+    networks: [workshop-network]
+    container_name: workshop-prometheus
+    volumes:
+    - type: bind
+      source: .
+      target: /etc/prometheus/
+    - prometheus-data:/prometheus
+    ports:
+    - "9090:9090"
+    command:
+    - "--config.file=/etc/prometheus/prometheus.yml"
+    - "--web.listen-address=0.0.0.0:9090"
+    - "--storage.tsdb.retention.time=6h"
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 500M
+
 volumes:
-  app-volume: {}
+  prometheus-data:
+    name: workshop-prometheus
+  postgres-data:
+    name: workshop-postgres
+
+networks:
+  workshop-network:
+    name: workshop-network

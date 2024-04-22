@@ -3,7 +3,7 @@ import sbtassembly.AssemblyPlugin.autoImport.assembly
 inThisBuild(
   List(
     organization := "pl.lewapek",
-    scalaVersion := "3.4.0",
+    scalaVersion := "3.4.1",
     version      := IO.read(file("version")).linesIterator.next()
   )
 )

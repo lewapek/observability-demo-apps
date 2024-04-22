@@ -1,0 +1,21 @@
+global:
+  scrape_interval: 15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+
+scrape_configs:
+- job_name: "prometheus"
+  static_configs:
+  - targets: ["localhost:9090"]
+  metrics_path: /metrics
+- job_name: "workshop-view"
+  static_configs:
+  - targets: ["workshop-view:8080"]
+  metrics_path: /metrics
+- job_name: "workshop-order"
+  static_configs:
+  - targets: ["workshop-order:8080"]
+  metrics_path: /metrics
+- job_name: "workshop-product"
+  static_configs:
+  - targets: ["workshop-product:8080"]
+  metrics_path: /metrics
+
