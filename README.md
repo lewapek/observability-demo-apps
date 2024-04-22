@@ -19,7 +19,7 @@ This app uses `zio-opentelmetry` to send spans using newest `OpenTelemetry` stan
 
 ## Apps
 
-```shell
+```
 
                            +---------+      +------------+
                            |         |      |            |
