@@ -1,6 +1,6 @@
 # Observability demo apps
 
-Application used to demonstrate distributed tracing with OpenTelemetry with some metrics scraped by Prometheus server during various training sessions.  
+Applications used to demonstrate distributed tracing with OpenTelemetry with some metrics scraped by Prometheus server during various training sessions.  
 For simplicity each application specific code is placed inside module with common code in `common` module.  
 Also for simplicity each app uses the same postgres db (however different tables inside, normally that should be separate db).
 
