@@ -4,6 +4,27 @@ Applications used to demonstrate distributed tracing with OpenTelemetry with som
 For simplicity each application specific code is placed inside module with common code in `common` module.  
 Also for simplicity each app uses the same postgres db (however different tables inside, normally that should be separate db).
 
+## Quickstart
+
+You just need docker
+```shell
+cd run-local/
+docker compose up -d
+curl -s -XPOST localhost:9500/app/init-load
+curl -s localhost:9500/app/order | jq
+curl -s -XPUT localhost:9500/generator
+curl -XPOST -s localhost:9500/common/forward -d '{"ttl": 7, "beforeMillis": 5, "afterMillis": 1}' | jq
+
+# jaeger:
+# http://localhost:16686 # service: view, operation: forward -> Find Traces
+
+# prometheus
+# http://localhost:9090 # query: jobs_running
+
+docker compose down -v
+```
+
+
 ## If you come here from Scala world
 
 Then below you may be interested in the following:
