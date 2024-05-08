@@ -1,9 +1,7 @@
 # Observability demo apps
 
 Applications to demonstrate distributed tracing with OpenTelemetry + metrics scraped by Prometheus server.  
-I use these apps during various workshop sessions I conduct. They also run on Kubernetes with multiple replicas/versions and advanced routing (service mesh included). However, what you find below should be sufficient to run the whole stack locally with a single docker-compose command.  
-For simplicity each application specific code is placed inside module with common code in `common` module.  
-Also for simplicity each app uses the same postgres db (however different tables inside, normally that should be separate db).
+I use these apps during various workshop sessions I conduct. They also run on Kubernetes with multiple replicas/versions and advanced routing (service mesh included). However, what you find below should be sufficient to run the whole stack locally with a single docker-compose command.
 
 ## Quickstart
 
@@ -35,6 +33,9 @@ Then below you may be interested in the following:
 - actually there are 3 apps there - however all of quite similar
   - module `common` - common functionalities
   - other modules (`product`, `order`, `view`) represent 3 apps
+
+For simplicity each application specific code is placed inside module with common code in `common` module.  
+Also for simplicity each app uses the same postgres db (however different tables inside, normally that should be separate db).
 
 ## Tracing
 This app uses `zio-opentelmetry` to send spans using newest `OpenTelemetry` standard.
