@@ -1,6 +1,7 @@
 # Observability demo apps
 
-Applications used to demonstrate distributed tracing with OpenTelemetry with some metrics scraped by Prometheus server during various training sessions.  
+Applications to demonstrate distributed tracing with OpenTelemetry + metrics scraped by Prometheus server.  
+I use these apps during various workshop sessions I conduct. They also run on Kubernetes with multiple replicas/versions and advanced routing (service mesh included). However, what you find below should be sufficient to run the whole stack locally with a single docker-compose command.  
 For simplicity each application specific code is placed inside module with common code in `common` module.  
 Also for simplicity each app uses the same postgres db (however different tables inside, normally that should be separate db).
 
