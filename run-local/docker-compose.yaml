@@ -1,8 +1,8 @@
 services:
   view:
     container_name: "workshop-view"
-    networks: [workshop-network]
-    image: lewap/workshop-view:0.4.0
+    networks: [ workshop-network ]
+    image: lewap/workshop-view:0.5.0
     environment:
       HTTP_PORT: "8080"
       PRODUCT_URI: "http://product:8080"
@@ -24,8 +24,8 @@ services:
 
   product:
     container_name: "workshop-product"
-    networks: [workshop-network]
-    image: lewap/workshop-product:0.4.0
+    networks: [ workshop-network ]
+    image: lewap/workshop-product:0.5.0
     environment:
       HTTP_PORT: "8080"
       DB_USER: "workshop"
@@ -36,7 +36,7 @@ services:
       TRACING_HOST: "http://jaeger:4317"
       TRACING_TRACER_NAME: "product"
       FORWARD_URI: "http://localhost:8080/common/forward"
-      VERSION: 1
+      VERSION: 3
     ports:
     - "9501:8080"
     restart: always
@@ -50,8 +50,8 @@ services:
 
   order:
     container_name: "workshop-order"
-    networks: [workshop-network]
-    image: lewap/workshop-order:0.4.0
+    networks: [ workshop-network ]
+    image: lewap/workshop-order:0.5.0
     environment:
       HTTP_PORT: "8080"
       DB_USER: "workshop"
@@ -74,9 +74,36 @@ services:
           cpus: '1'
           memory: 500M
 
+  consumer:
+    container_name: "workshop-consumer"
+    networks: [ workshop-network ]
+    image: lewap/workshop-consumer:0.5.0
+    environment:
+      HTTP_PORT: "8080"
+      PRODUCT_URI: "http://product:8080"
+      KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
+      KAFKA_GROUP: "workshop"
+      KAFKA_PRODUCTS_TOPIC: "products"
+      KAFKA_PRINT_TOPIC: "print"
+      TRACING_HOST: "http://jaeger:4317"
+      TRACING_TRACER_NAME: "consumer"
+      FORWARD_URI: "http://localhost:8080/common/forward"
+      VERSION: 1
+    ports:
+    - "9503:8080"
+    restart: always
+    depends_on:
+    - postgres
+    - kafka
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 500M
+
   postgres:
     container_name: "workshop-postgres"
-    networks: [workshop-network]
+    networks: [ workshop-network ]
     image: postgres:14-alpine
     environment:
       POSTGRES_DB: "workshop"
@@ -95,9 +122,34 @@ services:
           cpus: '2'
           memory: 500M
 
+  kafka:
+    container_name: "workshop-kafka"
+    networks: [ workshop-network ]
+    image: bitnami/kafka:3.3.2
+    environment:
+      KAFKA_ENABLE_KRAFT: yes
+      KAFKA_CFG_NODE_ID: 1
+      KAFKA_CFG_PROCESS_ROLES: broker,controller
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@:9093
+      ALLOW_PLAINTEXT_LISTENER: yes
+    restart: always
+    volumes:
+    - kafka-data:/bitnami/kafka
+    ports:
+    - "9094:9094"
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 500M
+
   jaeger:
     container_name: "workshop-jaeger"
-    networks: [workshop-network]
+    networks: [ workshop-network ]
     image: jaegertracing/all-in-one:1.48
     environment:
       COLLECTOR_OTLP_ENABLED: true
@@ -113,7 +165,7 @@ services:
 
   prometheus:
     image: prom/prometheus:v2.51.1
-    networks: [workshop-network]
+    networks: [ workshop-network ]
     container_name: workshop-prometheus
     volumes:
     - type: bind
@@ -137,6 +189,8 @@ volumes:
     name: workshop-prometheus
   postgres-data:
     name: workshop-postgres
+  kafka-data:
+    name: workshop-kafka
 
 networks:
   workshop-network:

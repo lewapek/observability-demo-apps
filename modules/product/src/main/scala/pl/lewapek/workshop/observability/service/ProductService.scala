@@ -23,6 +23,18 @@ class ProductService(transactor: Transactor[Task], tracing: Tracing, variantConf
   def add(input: ProductInfoInput): IO[AppError, ProductInfo] =
     ProductRepo.insert(input).transactional.map(_.transformToVersion)
 
+  def updateFunFacts(input: ProductInfoInput): IO[AppError, Unit] =
+    for
+      foundProducts <- getByNameCaseInsensitive(input.name)
+      _ <- ZIO
+        .foreachParDiscard(foundProducts) { found =>
+          val toReplace = ProductInfoInput(found.name, input.funFact, input.additionalFunFact)
+          replace(found.id, toReplace)
+        }
+        .withParallelism(2)
+    yield ()
+  end updateFunFacts
+
   def get(id: ProductId): IO[AppError, Option[ProductInfo]] =
     ProductRepo.select(id).transactional.map(_.map(_.transformToVersion))
 
@@ -38,11 +50,20 @@ class ProductService(transactor: Transactor[Task], tracing: Tracing, variantConf
       case Some(list) => ProductRepo.select(list).transactional.map(_.map(_.transformToVersion))
   end get
 
+  private def replace(id: ProductId, input: ProductInfoInput): IO[AppError, Int] =
+    ProductRepo.replace(id, input).transactional
+
+  private def getByNameCaseInsensitive(name: String): IO[AppError, List[ProductInfo]] =
+    ProductRepo.findByNameCaseInsensitive(name).transactional.map(_.map(_.transformToVersion))
+
 end ProductService
 
 object ProductService:
   def add(input: ProductInfoInput): ZIO[ProductService, AppError, ProductInfo] =
     ZIO.serviceWithZIO[ProductService](_.add(input))
+
+  def updateFunFacts(input: ProductInfoInput): ZIO[ProductService, AppError, Unit] =
+    ZIO.serviceWithZIO[ProductService](_.updateFunFacts(input))
 
   def get(id: ProductId): ZIO[ProductService, AppError, Option[ProductInfo]] =
     ZIO.serviceWithZIO[ProductService](_.get(id))

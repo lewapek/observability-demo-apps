@@ -1,5 +1,5 @@
 VERSION=$(head -1 version)
-all="product order view"
+all="consumer product order view"
 
 if [ ${#} -ne 2 ]; then
   echo "2 arguments expected: <command> <module>|\"all\""

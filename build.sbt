@@ -34,15 +34,15 @@ lazy val assemblySettings = Seq(
 
 lazy val common = (project in file("modules/common"))
   .settings(
-    libraryDependencies ++= Dependencies.all,
+    libraryDependencies ++= Dependencies.common,
     scalacOptions -= "-Wunused:imports"
   )
   .disablePlugins(AssemblyPlugin)
 
 lazy val product = (project in file("modules/product"))
   .settings(
-    name := "products",
-    scalacOptions -= "-Wunused:imports",
+    name := "product",
+    scalacOptions -= "-Wunused:imports"
   )
   .dependsOn(common)
   .settings(assemblySettings)
@@ -50,8 +50,8 @@ lazy val product = (project in file("modules/product"))
 
 lazy val order = (project in file("modules/order"))
   .settings(
-    name := "orders",
-    scalacOptions -= "-Wunused:imports",
+    name := "order",
+    scalacOptions -= "-Wunused:imports"
   )
   .dependsOn(common)
   .settings(assemblySettings)
@@ -59,8 +59,18 @@ lazy val order = (project in file("modules/order"))
 
 lazy val view = (project in file("modules/view"))
   .settings(
-    name := "orders",
+    name := "view",
+    scalacOptions -= "-Wunused:imports"
+  )
+  .dependsOn(common)
+  .settings(assemblySettings)
+  .enablePlugins(AssemblyPlugin)
+
+lazy val consumer = (project in file("modules/consumer"))
+  .settings(
+    name := "consumer",
     scalacOptions -= "-Wunused:imports",
+    libraryDependencies ++= Dependencies.kafka
   )
   .dependsOn(common)
   .settings(assemblySettings)

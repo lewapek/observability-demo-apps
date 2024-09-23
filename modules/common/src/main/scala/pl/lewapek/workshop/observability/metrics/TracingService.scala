@@ -49,6 +49,9 @@ end TracingService
 object TracingService:
   final case class TracingBaggage(tracing: Tracing, baggage: Baggage)
   final case class TracingHeaders(value: Map[String, String])
+  object TracingHeaders:
+    val empty = TracingHeaders(Map.empty)
+  end TracingHeaders
   final case class Carriers(
     input: IncomingContextCarrier[Headers],
     output: OutgoingContextCarrier[mutable.Map[String, String]]

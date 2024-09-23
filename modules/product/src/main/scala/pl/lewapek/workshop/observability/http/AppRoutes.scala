@@ -6,7 +6,7 @@ import pl.lewapek.workshop.observability.model.{ProductId, ProductInfo, ProductI
 import pl.lewapek.workshop.observability.service.ProductService
 import zio.*
 import zio.http.*
-import zio.http.Method.{GET, POST}
+import zio.http.Method.{GET, PATCH, POST}
 import zio.json.*
 
 object AppRoutes:
@@ -21,6 +21,13 @@ object AppRoutes:
               input <- request.body.jsonAs[ProductInfoInput]
               added <- ProductService.add(input)
             yield added.jsonVariantResponse
+          }
+        case request @ PATCH -> !! / "app" / "product-fun-facts" =>
+          withTracing(request, "patch-product") {
+            for
+              input <- request.body.jsonAs[ProductInfoInput]
+              added <- ProductService.updateFunFacts(input)
+            yield Response.ok
           }
         case request @ GET -> !! / "app" / "product" / long(id) =>
           withTracing(request, "/app/product/id") {

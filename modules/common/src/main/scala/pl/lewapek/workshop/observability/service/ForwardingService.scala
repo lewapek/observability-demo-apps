@@ -23,7 +23,7 @@ class ForwardingService(backend: SttpBackendType, config: ForwardingServiceConfi
         .ensureMaxTtl(config.maxTtl)
         .decrementTtl
         .fold(
-          ZIO.logInfo("Forwarding request reached the end") *> ZIO.succeed(ForwardingResponse(0))
+          ZIO.logInfo("Forwarding request reached the end").as(ForwardingResponse(0))
         )(decreasedTllRequest =>
           ZIO.logInfo(s"Forwarding request is being sent with decreased ttl: $decreasedTllRequest") *>
             send(input.headers, decreasedTllRequest.toJson)

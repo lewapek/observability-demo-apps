@@ -10,6 +10,7 @@ object Dependencies {
   private val zioJsonVersion        = "0.6.2"
   private val zioConfigVersion      = "4.0.0-RC16"
   private val zioMetricsVersion     = "2.1.0"
+  private val zioKafkaVersion       = "2.7.4"
   private val sttpVersion           = "3.8.11"
   private val ducktapeVersion       = "0.1.11"
   private val tapirVersion          = "1.3.0"
@@ -77,6 +78,10 @@ object Dependencies {
     "com.softwaremill.sttp.client3" %% "prometheus-backend" % sttpVersion
   )
 
+  private val zioKafka = Seq(
+    "dev.zio" %% "zio-kafka" % zioKafkaVersion
+  )
+
   private val tapir = Seq(
     "com.softwaremill.sttp.tapir" %% "tapir-json-zio"       % tapirVersion,
     "com.softwaremill.sttp.tapir" %% "tapir-jsoniter-scala" % tapirVersion
@@ -96,7 +101,7 @@ object Dependencies {
     "org.flywaydb" % "flyway-core" % "9.11.0"
   )
 
-  val all = Seq(
+  val common = Seq(
     zio,
     zioInteropCats,
     zioTest,
@@ -110,9 +115,12 @@ object Dependencies {
     zioPrelude,
     zioHttp,
     zioSttp,
+    zioKafka,
     tapir,
     ducktape,
     doobie,
     flyway
   ).flatten
+
+  val kafka = zioKafka
 }

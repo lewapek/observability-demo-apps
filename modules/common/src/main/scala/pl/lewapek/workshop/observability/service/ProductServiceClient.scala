@@ -28,6 +28,11 @@ class ProductServiceClient(backend: SttpBackendType, productsConfig: ProductsSer
       _.post(productsConfig.uri.addPath("app", "product")).body(input.toJson)
     ) @@ span("post:/app/product")
 
+  def updateFunFacts(input: ProductInfoInput): IO[AppError, Unit] =
+    sendUnit(
+      _.patch(productsConfig.uri.addPath("app", "product-fun-facts")).body(input.toJson)
+    )
+
   def product(id: ProductId)(using TracingHeaders): IO[AppError, WithVariant[Option[ProductInfo]]] =
     sendTraceJson(
       _.get(productsConfig.uri.addPath("app", "product", id.show))

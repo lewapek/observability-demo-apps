@@ -4,7 +4,7 @@ import cats.syntax.option.*
 import doobie.{Fragment, Write}
 import pl.lewapek.workshop.observability.types.{Limit, Offset}
 
-case class SelectParams(
+final case class SelectParams(
   query: Option[Fragment],
   sort: List[Fragment],
   offset: Option[Offset],

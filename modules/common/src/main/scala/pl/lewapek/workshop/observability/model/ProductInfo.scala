@@ -3,10 +3,10 @@ package pl.lewapek.workshop.observability.model
 import pl.lewapek.workshop.observability.types.NewPowerType
 import zio.json.{JsonDecoder, JsonEncoder}
 
-case class ProductInfo(id: ProductId, name: String, funFact: Option[String], additionalFunFact: Option[String])
+final case class ProductInfo(id: ProductId, name: String, funFact: Option[String], additionalFunFact: Option[String])
   derives JsonEncoder,
     JsonDecoder
-case class ProductInfoInput(name: String, funFact: Option[String], additionalFunFact: Option[String])
+final case class ProductInfoInput(name: String, funFact: Option[String], additionalFunFact: Option[String])
   derives JsonEncoder,
     JsonDecoder
 

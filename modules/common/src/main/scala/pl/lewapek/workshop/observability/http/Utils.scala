@@ -45,11 +45,6 @@ trait SttpUtils(backend: SttpBackendType, request: JsonRequestT):
 
   def sendUnit(transform: JsonRequestT => JsonRequest): IO[AppError, Unit] =
     backend.send(transform(request))
-      .mapBoth(
-        AppError.internal("Error sending request", _),
-        _.body.left
-          .map(msg => AppError.internal(s"Couldn't read response: $msg"))
-      )
-      .absolve
+      .mapError(AppError.internal("Error sending request", _))
       .unit
 end SttpUtils

@@ -10,13 +10,14 @@ import zio.metrics.connectors.MetricsConfig
 
 object CommonConfig:
   type Requirements = HttpConfig & VariantConfig & DbConfig & ForwardingServiceConfig & MetricsConfig & TracingConfig &
-    ProductsServiceClientConfig & OrdersServiceClientConfig
+    ProductsServiceClientConfig & OrdersServiceClientConfig & KafkaConfig
 
   val provider: ConfigProvider =
     TypesafeConfigProvider.fromResourcePath(enableCommaSeparatedValueAsList = true).kebabCase
 
   private val http              = DeriveConfig.derived[HttpConfig].desc.nested("http")
   private val db                = DeriveConfig.derived[DbConfig].desc.nested("db")
+  private val kafka             = DeriveConfig.derived[KafkaConfig].desc.nested("kafka")
   private val variant           = DeriveConfig.derived[VariantConfig].desc.nested("variant")
   private val forwardingService = DeriveConfig.derived[ForwardingServiceConfig].desc.nested("forwarding-service")
   private val productServiceClient =
@@ -37,7 +38,8 @@ object CommonConfig:
         mkLayer(metrics) ++
         mkLayer(tracing) ++
         mkLayer(productServiceClient) ++
-        mkLayer(orderServiceClient)
+        mkLayer(orderServiceClient) ++
+        mkLayer(kafka)
     )
       .tapError(e => ZIO.logError(s"Error reading config: ${e.getMessage}"))
       .orDie
@@ -66,3 +68,10 @@ final case class DbConfig(
 end DbConfig
 final case class ProductsServiceClientConfig(uri: Uri)
 final case class OrdersServiceClientConfig(uri: Uri)
+
+final case class KafkaConfig(
+  bootstrapServers: List[String],
+  group: String,
+  productsTopic: String,
+  printTopic: String
+)

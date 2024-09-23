@@ -27,7 +27,7 @@ object Main extends ZIOAppDefault:
 
   private val program =
     for
-      _              <- ZIO.logInfo("Starting Products management")
+      _              <- ZIO.logInfo("Starting product app")
       tracingService <- ZIO.service[TracingService]
       variantConfig  <- ZIO.service[VariantConfig]
       _ <- HttpServer.run(
