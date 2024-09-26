@@ -2,7 +2,7 @@ services:
   view:
     container_name: "workshop-view"
     networks: [ workshop-network ]
-    image: lewap/workshop-view:0.5.0
+    image: lewap/workshop-view:0.5.1
     environment:
       HTTP_PORT: "8080"
       PRODUCT_URI: "http://product:8080"
@@ -25,7 +25,7 @@ services:
   product:
     container_name: "workshop-product"
     networks: [ workshop-network ]
-    image: lewap/workshop-product:0.5.0
+    image: lewap/workshop-product:0.5.1
     environment:
       HTTP_PORT: "8080"
       DB_USER: "workshop"
@@ -51,7 +51,7 @@ services:
   order:
     container_name: "workshop-order"
     networks: [ workshop-network ]
-    image: lewap/workshop-order:0.5.0
+    image: lewap/workshop-order:0.5.1
     environment:
       HTTP_PORT: "8080"
       DB_USER: "workshop"
@@ -77,7 +77,7 @@ services:
   consumer:
     container_name: "workshop-consumer"
     networks: [ workshop-network ]
-    image: lewap/workshop-consumer:0.5.0
+    image: lewap/workshop-consumer:0.5.1
     environment:
       HTTP_PORT: "8080"
       PRODUCT_URI: "http://product:8080"

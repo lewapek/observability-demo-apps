@@ -12,7 +12,14 @@ cd run-local/
 docker compose up -d
 curl -s -XPOST localhost:9500/app/init-load
 curl -s localhost:9500/app/order | jq
+
+# generator continuously starting new phantom async jobs in workshop-product and workshop-order
+# prometheus gauge is incremented once job is started and decremented when finished
+# look at the prometheus ui screenshot below
 curl -s -XPUT localhost:9500/generator
+
+# sample request - handled by decrementing ttl until 0, and recursively calling itself by default
+# this one will generate sample traces - see below
 curl -XPOST -s localhost:9500/common/forward -d '{"ttl": 7, "beforeMillis": 5, "afterMillis": 1}' | jq
 
 # jaeger:
@@ -33,7 +40,7 @@ Then below you may be interested in the following:
 - and send traces using open telemetry standard to `Jaeger`,
 - actually there are 3 apps there - however all of quite similar
   - module `common` - common functionalities
-  - other modules (`product`, `order`, `view`) represent 3 apps
+  - other modules (`product`, `order`, `view`, `consumer`) represent 4 apps
 
 ## Tracing
 This app uses `zio-opentelmetry` to send spans using newest `OpenTelemetry` standard.
@@ -42,21 +49,23 @@ This app uses `zio-opentelmetry` to send spans using newest `OpenTelemetry` stan
 
 ```
 
-                           +---------+      +------------+
-                           |         |      |            |
-                           |  Order  |------|  Postgres  |
-                           |         |      |            |
-                           +---------+      +------------+
-           +--------+         |   
-           |        |---------+    
-           |  View  |              
-           |        |---------+    
-           +--------+         |    
-                           +-----------+    +------------+
-                           |           |    |            |
-                           |  Product  |----|  Postgres  |
-                           |           |    |            |
-                           +-----------+    +------------+
+                                   +---------+     +------------+
+                                   |         |     |            |
+                                   |  Order  |-----|  Postgres  |
+                                   |         |     |            |
+                                   +---------+     +------------+
+                                        |   
+            +--------+                  |   
+            |        |------------------+    
+            |  View  |            
+            |        |------------------+    
+            +--------+                  |    
+                                        |
+    +---------+   +------------+   +-----------+   +------------+
+    |         |   |            |   |           |   |            |
+    |  Kafka  |---|  Consumer  |---|  Product  |---|  Postgres  |
+    |         |   |            |   |           |   |            |
+    +---------+   +------------+   +-----------+   +------------+
  
 ```
 
@@ -71,6 +80,10 @@ This app uses `zio-opentelmetry` to send spans using newest `OpenTelemetry` stan
   - combine order and products together to produce full order view
   - also responsible for initial load with random data
 
+#### Consumer
+  - consumes product name from Kafka topic
+  - updates fun facts for consumed products (by calling `Product`)
+
 ## Variants
 
 Variants are chosen via `VERSION` env variable.
@@ -81,6 +94,8 @@ Variants are chosen via `VERSION` env variable.
   - Version `1` - `2`
 - `View`
   - Version `1` - `3`
+- `Consumer`
+  - single version `1`
 
 You can set `VERSION` to `"1"`, `"2"` or `"3"` and observe different behavior.  
 `Product` and `Order` return enriched data with increasing version number.  
