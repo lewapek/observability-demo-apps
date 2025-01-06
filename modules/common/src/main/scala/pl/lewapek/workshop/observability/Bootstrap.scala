@@ -10,26 +10,33 @@ import sttp.client3.SttpBackend
 import sttp.client3.httpclient.zio.HttpClientZioBackend
 import sttp.client3.logging.{LogLevel, Logger, LoggingBackend}
 import zio.logging.slf4j.bridge.Slf4jBridge
-import zio.logging.{ConsoleLoggerConfig, LogFilter, LogFormat, consoleJsonLogger, removeDefaultLoggers}
+//import zio.logging.{ConsoleLoggerConfig, LogFilter, LogFormat, consoleJsonLogger, removeDefaultLoggers}
+import zio.logging.{ConsoleLoggerConfig, LogFilter, LogFormat, consoleJsonLogger}
 import zio.metrics.connectors.MetricsConfig
 import zio.metrics.connectors.prometheus.PrometheusPublisher
 import zio.telemetry.opentelemetry.baggage.Baggage
 import zio.telemetry.opentelemetry.context.ContextStorage
 import zio.telemetry.opentelemetry.tracing.{StatusMapper, Tracing}
 import zio.{Cause, Task, ZIO, ZLayer}
+import zio.Tag
+import sttp.capabilities.WebSockets
 
 object Bootstrap:
   type CommonRequirements = MetricsConfig & VariantConfig & HttpConfig & PrometheusPublisher & Tracing & Baggage &
     TracingService & ContextStorage & ForwardingService & ManualHealthStateService
-  type SttpBackendType = SttpBackend[Task, ZioStreams & capabilities.WebSockets]
+  type ZIOStreamsWebsockets = ZioStreams & WebSockets
+  given sttpClientTag: Tag[SttpBackend[Task, ZIOStreamsWebsockets]] =
+    Tag.materialize[SttpBackend[Task, ZIOStreamsWebsockets]]
+  type SttpBackendType = SttpBackend[Task, ZIOStreamsWebsockets]
 
   val statusMapper: StatusMapper[Throwable, Any] = StatusMapper.failureThrowable(_ => StatusCode.UNSET)
 
   lazy val logger: ZLayer[Any, Nothing, Any] =
-    removeDefaultLoggers >>> consoleJsonLogger(
+    zio.Runtime.removeDefaultLoggers >>> consoleJsonLogger(
       ConsoleLoggerConfig.default.copy(
         format = LogFormat.default + LogFormat.allAnnotations,
-        filter = LogFilter.logLevelByName(zio.LogLevel.Info)
+        //filter = LogFilter.logLevelByName(zio.LogLevel.Info)
+        filter = LogFilter.LogLevelByNameConfig(zio.LogLevel.Info, Map("pl.lewapek.workshop.observability" -> zio.LogLevel.Info))
       )
     ) >>> Slf4jBridge.initialize
 

@@ -4,14 +4,14 @@ import sbt.*
 // scalafmt: { rewrite.scala3.convertToNewSyntax = false, rewrite.scala3.removeOptionalBraces = false }
 object Dependencies {
 
-  private val zioVersion            = "2.0.16"
+  private val zioVersion            = "2.1.14"
   private val zioInteropCatsVersion = "23.1.0.0"
-  private val zioLoggingVersion     = "2.1.14"
+  private val zioLoggingVersion     = "2.2.4"
   private val zioJsonVersion        = "0.6.2"
   private val zioConfigVersion      = "4.0.0-RC16"
   private val zioMetricsVersion     = "2.1.0"
   private val zioKafkaVersion       = "2.7.4"
-  private val sttpVersion           = "3.8.11"
+  private val sttpVersion           = "3.10.2"
   private val ducktapeVersion       = "0.1.11"
   private val tapirVersion          = "1.3.0"
   private val doobieVersion         = "1.0.0-RC5"

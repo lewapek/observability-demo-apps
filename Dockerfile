@@ -1,10 +1,10 @@
-FROM sbtscala/scala-sbt:eclipse-temurin-jammy-17.0.8.1_1_1.9.6_3.3.1 AS build
+FROM sbtscala/scala-sbt:eclipse-temurin-17.0.13_11_1.10.7_3.6.2 AS build
 WORKDIR /app
 COPY . /app
 ARG MODULE
 RUN sbt ${MODULE}/assembly
 
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:17.0.13_11-jre-ubi9-minimal
 ARG APP_VERSION
 WORKDIR /app
 USER 1001
