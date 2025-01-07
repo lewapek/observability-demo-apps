@@ -10,7 +10,6 @@ import sttp.client3.SttpBackend
 import sttp.client3.httpclient.zio.HttpClientZioBackend
 import sttp.client3.logging.{LogLevel, Logger, LoggingBackend}
 import zio.logging.slf4j.bridge.Slf4jBridge
-//import zio.logging.{ConsoleLoggerConfig, LogFilter, LogFormat, consoleJsonLogger, removeDefaultLoggers}
 import zio.logging.{ConsoleLoggerConfig, LogFilter, LogFormat, consoleJsonLogger}
 import zio.metrics.connectors.MetricsConfig
 import zio.metrics.connectors.prometheus.PrometheusPublisher
@@ -35,8 +34,7 @@ object Bootstrap:
     zio.Runtime.removeDefaultLoggers >>> consoleJsonLogger(
       ConsoleLoggerConfig.default.copy(
         format = LogFormat.default + LogFormat.allAnnotations,
-        //filter = LogFilter.logLevelByName(zio.LogLevel.Info)
-        filter = LogFilter.LogLevelByNameConfig(zio.LogLevel.Info, Map("pl.lewapek.workshop.observability" -> zio.LogLevel.Info))
+        filter = LogFilter.logLevelByName(zio.LogLevel.Info)
       )
     ) >>> Slf4jBridge.initialize
 

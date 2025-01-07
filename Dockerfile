@@ -4,7 +4,7 @@ COPY . /app
 ARG MODULE
 RUN sbt ${MODULE}/assembly
 
-FROM eclipse-temurin:17.0.13_11-jre-ubi9-minimal
+FROM eclipse-temurin:17-jre-alpine
 ARG APP_VERSION
 WORKDIR /app
 USER 1001

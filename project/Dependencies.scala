@@ -6,7 +6,7 @@ object Dependencies {
 
   private val zioVersion            = "2.1.14"
   private val zioInteropCatsVersion = "23.1.0.0"
-  private val zioLoggingVersion     = "2.2.4"
+  private val zioLoggingVersion     = "2.1.14"
   private val zioJsonVersion        = "0.6.2"
   private val zioConfigVersion      = "4.0.0-RC16"
   private val zioMetricsVersion     = "2.1.0"
