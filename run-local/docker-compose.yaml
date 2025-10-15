@@ -125,7 +125,7 @@ services:
   kafka:
     container_name: "workshop-kafka"
     networks: [ workshop-network ]
-    image: bitnami/kafka:3.3.2
+    image: bitnamilegacy/kafka:3.3.2
     environment:
       KAFKA_ENABLE_KRAFT: yes
       KAFKA_CFG_NODE_ID: 1
@@ -164,7 +164,7 @@ services:
           memory: 500M
 
   prometheus:
-    image: prom/prometheus:v2.51.1
+    image: prom/prometheus:v3.7.0
     networks: [ workshop-network ]
     container_name: workshop-prometheus
     volumes:
